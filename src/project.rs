@@ -9,8 +9,8 @@ pub mod summary;
 pub mod weighting_factors;
 
 #[derive(Debug, Default)]
-pub struct Project<'a> {
-    basic_functional_components: Vec<BasicFunctionalComponent<'a>>,
+pub struct Project {
+    basic_functional_components: Vec<BasicFunctionalComponent>,
     summary: Summary,
     adjustment_factors: AdjustmentFactors,
     weighting_factors: WeightingFactors,
@@ -22,8 +22,8 @@ pub struct Project<'a> {
     total_cost: f32,
 }
 
-impl<'a> Project<'a> {
-    pub fn new(bfcs: Vec<BasicFunctionalComponent<'a>>) -> Self {
+impl Project {
+    pub fn new(bfcs: Vec<BasicFunctionalComponent>) -> Self {
         let mut project = Project::default();
 
         bfcs.into_iter().for_each(|b| project.add_bfc(b));
@@ -31,7 +31,7 @@ impl<'a> Project<'a> {
         project
     }
 
-    pub fn add_bfc(&mut self, bfc: BasicFunctionalComponent<'a>) {
+    pub fn add_bfc(&mut self, bfc: BasicFunctionalComponent) {
         self.increment_summary_table(&bfc);
         self.basic_functional_components.push(bfc);
         self.compute_tfna();
@@ -195,7 +195,6 @@ mod tests {
 
         let mut bfc1 = BasicFunctionalComponent::new(
             "Base de dados de produtos".to_string(),
-            None,
             FunctionalClassification::InternalLogicalFile,
         );
 
@@ -211,7 +210,6 @@ mod tests {
 
         let mut bfc2 = BasicFunctionalComponent::new(
             "Função de Criação de Registros".to_string(),
-            None,
             FunctionalClassification::ExternalInput,
         );
 
@@ -227,7 +225,6 @@ mod tests {
 
         let mut bfc3 = BasicFunctionalComponent::new(
             "Função de Consulta de Registros".to_string(),
-            None,
             FunctionalClassification::ExternalQuery,
         );
 
@@ -243,7 +240,6 @@ mod tests {
 
         let mut bfc4 = BasicFunctionalComponent::new(
             "Função de Atualização de dados".to_string(),
-            None,
             FunctionalClassification::ExternalInput,
         );
 
@@ -259,7 +255,6 @@ mod tests {
 
         let mut bfc5 = BasicFunctionalComponent::new(
             "Função de Extração de dados".to_string(),
-            None,
             FunctionalClassification::ExternalOutput,
         );
 
@@ -275,7 +270,6 @@ mod tests {
 
         let mut bfc6 = BasicFunctionalComponent::new(
             "Arquivo de dados extraídos".to_string(),
-            None,
             FunctionalClassification::ExternalInterfaceFile,
         );
 
@@ -306,18 +300,16 @@ mod tests {
         assert_eq!(proj.total_cost, 2716f32);
     }
 
-    fn random_bfc() -> BasicFunctionalComponent<'static> {
+    fn random_bfc() -> BasicFunctionalComponent {
         BasicFunctionalComponent::new(
             "Create tables".to_string(),
-            None,
             FunctionalClassification::ExternalInput,
         )
     }
 
-    fn random_bfc2() -> BasicFunctionalComponent<'static> {
+    fn random_bfc2() -> BasicFunctionalComponent {
         BasicFunctionalComponent::new(
             "Lorem ipsum".to_string(),
-            None,
             FunctionalClassification::ExternalOutput,
         )
     }

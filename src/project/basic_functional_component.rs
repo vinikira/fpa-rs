@@ -7,9 +7,8 @@ mod elementary_data_referenced;
 mod file_registry;
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct BasicFunctionalComponent<'a> {
+pub struct BasicFunctionalComponent {
     pub name: String,
-    pub depends_on: Option<&'a BasicFunctionalComponent<'a>>,
     pub functional_classification: FunctionalClassification,
     pub elementary_data_referenced: ElementaryDataReferenced,
     pub file_record: FileRegistry,
@@ -32,15 +31,10 @@ pub enum FunctionalClassification {
     ExternalInterfaceFile,
 }
 
-impl<'a> BasicFunctionalComponent<'a> {
-    pub fn new(
-        name: String,
-        previous: Option<&'a BasicFunctionalComponent>,
-        fc: FunctionalClassification,
-    ) -> Self {
+impl BasicFunctionalComponent {
+    pub fn new(name: String, fc: FunctionalClassification) -> Self {
         let mut bfc = BasicFunctionalComponent {
             name,
-            depends_on: previous,
             functional_classification: fc,
             elementary_data_referenced: ElementaryDataReferenced::default(),
             file_record: FileRegistry::default(),
@@ -167,9 +161,9 @@ impl<'a> BasicFunctionalComponent<'a> {
     }
 }
 
-impl<'a> From<DraftBasicFunctionalComponent> for BasicFunctionalComponent<'a> {
+impl From<DraftBasicFunctionalComponent> for BasicFunctionalComponent {
     fn from(dbfc: DraftBasicFunctionalComponent) -> Self {
-        Self::new(dbfc.name, None, dbfc.fc)
+        Self::new(dbfc.name, dbfc.fc)
     }
 }
 
@@ -187,26 +181,10 @@ mod tests {
         let bfc = BasicFunctionalComponent::from(new_bfc.clone());
 
         assert_eq!(new_bfc.name, bfc.name);
-        assert_eq!(None, bfc.depends_on);
+
         assert_eq!(
             FunctionalClassification::ExternalInterfaceFile,
             bfc.functional_classification
         );
-    }
-
-    #[test]
-    fn bfc_with_prev() {
-        let bfc = BasicFunctionalComponent::new(
-            "Implement database".to_string(),
-            None,
-            FunctionalClassification::ExternalInput,
-        );
-        let bfc2 = BasicFunctionalComponent::new(
-            "Create tables".to_string(),
-            Some(&bfc),
-            FunctionalClassification::ExternalInterfaceFile,
-        );
-
-        assert_eq!(bfc2.depends_on, Some(&bfc));
     }
 }
