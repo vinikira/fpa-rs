@@ -55,3 +55,15 @@ impl AdjustmentFactors {
             + self.operation_in_multiple_locations) as u32
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_sum() {
+        let af = AdjustmentFactors::new([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+
+        assert_eq!(af.sum(), 105);
+    }
+}
