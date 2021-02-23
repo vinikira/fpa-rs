@@ -1,8 +1,6 @@
-pub use draft::DraftBasicFunctionalComponent;
 pub use elementary_data_referenced::ElementaryDataReferenced;
 pub use file_registry::FileRegistry;
 
-mod draft;
 mod elementary_data_referenced;
 mod file_registry;
 
@@ -32,9 +30,9 @@ pub enum FunctionalClassification {
 }
 
 impl BasicFunctionalComponent {
-    pub fn new(name: String, fc: FunctionalClassification) -> Self {
+    pub fn new(name: &'static str, fc: FunctionalClassification) -> Self {
         let mut bfc = BasicFunctionalComponent {
-            name,
+            name: name.to_string(),
             functional_classification: fc,
             elementary_data_referenced: ElementaryDataReferenced::default(),
             file_record: FileRegistry::default(),
@@ -158,33 +156,5 @@ impl BasicFunctionalComponent {
         } else {
             complexity_input
         }
-    }
-}
-
-impl From<DraftBasicFunctionalComponent> for BasicFunctionalComponent {
-    fn from(dbfc: DraftBasicFunctionalComponent) -> Self {
-        Self::new(dbfc.name, dbfc.fc)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn draftbfc_to_bfc() {
-        let new_bfc = DraftBasicFunctionalComponent::new(
-            "Implement database".to_string(),
-            FunctionalClassification::ExternalInterfaceFile,
-        );
-
-        let bfc = BasicFunctionalComponent::from(new_bfc.clone());
-
-        assert_eq!(new_bfc.name, bfc.name);
-
-        assert_eq!(
-            FunctionalClassification::ExternalInterfaceFile,
-            bfc.functional_classification
-        );
     }
 }

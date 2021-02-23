@@ -5,6 +5,8 @@ pub struct ElementaryDataReferenced {
 }
 
 impl ElementaryDataReferenced {
+    pub fn new(input: u32, output: u32) -> Self { Self { input, output } }
+
     pub fn total(&self) -> u32 {
         self.input + self.output
     }

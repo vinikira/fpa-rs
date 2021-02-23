@@ -26,19 +26,19 @@ impl Project {
     pub fn new(bfcs: Vec<BasicFunctionalComponent>) -> Self {
         let mut project = Project::default();
 
-        bfcs.into_iter().for_each(|b| project.add_bfc(b));
+	for bfc in bfcs.into_iter() {
+	    project.add_bfc(bfc);
+	}
 
         project
     }
 
-    pub fn add_bfc(&mut self, bfc: BasicFunctionalComponent) {
+    pub fn add_bfc(&mut self, bfc: BasicFunctionalComponent) -> &mut Self {
         self.increment_summary_table(&bfc);
         self.basic_functional_components.push(bfc);
         self.compute_tfna();
-    }
 
-    pub fn has_bfc(&self, bfc: &BasicFunctionalComponent) -> bool {
-        self.basic_functional_components.iter().any(|b| b == bfc)
+        self
     }
 
     pub fn set_weighting_factors(&mut self, wf: WeightingFactors) {
@@ -94,27 +94,27 @@ impl Project {
     fn compute_tfna(&mut self) {
         let ilf_result: u32 = Self::compute_weight(
             &self.summary.internal_logical_file,
-            &self.weighting_factors.referenced_logical_file,
+            self.weighting_factors.referenced_logical_file(),
         );
 
         let eif_result: u32 = Self::compute_weight(
             &self.summary.external_interface_file,
-            &self.weighting_factors.referenced_logical_file,
+            self.weighting_factors.referenced_logical_file(),
         );
 
         let ei_result: u32 = Self::compute_weight(
             &self.summary.external_input,
-            &self.weighting_factors.external_input,
+            self.weighting_factors.external_input(),
         );
 
         let eo_result: u32 = Self::compute_weight(
             &self.summary.external_output,
-            &self.weighting_factors.external_output,
+            self.weighting_factors.external_output(),
         );
 
         let eq_result: u32 = Self::compute_weight(
             &self.summary.external_query,
-            &self.weighting_factors.external_query,
+            self.weighting_factors.external_query(),
         );
 
         self.total_function_point_not_adjusted =
@@ -123,12 +123,38 @@ impl Project {
         self.compute_fafp();
     }
 
+    /// Compute weight and return.
     fn compute_weight(summary: &[u32], weight: &[u32]) -> u32 {
         summary
             .iter()
             .zip(weight.iter())
             .map(|(summary_weight, weighting_factor)| summary_weight * weighting_factor)
             .sum()
+    }
+
+    /// Get a reference to the project's total function point not adjusted.
+    pub fn total_function_point_not_adjusted(&self) -> u32 {
+        self.total_function_point_not_adjusted
+    }
+
+    /// Get a reference to the project's total influence factor.
+    pub fn total_influence_factor(&self) -> u32 {
+        self.total_influence_factor
+    }
+
+    /// Get a reference to the project's final adjustment factor.
+    pub fn final_adjustment_factor(&self) -> f32 {
+        self.final_adjustment_factor
+    }
+
+    /// Get a reference to the project's final adjusted function points.
+    pub fn final_adjusted_function_points(&self) -> f32 {
+        self.final_adjusted_function_points
+    }
+
+    /// Get a reference to the project's total cost.
+    pub fn total_cost(&self) -> f32 {
+        self.total_cost
     }
 }
 
@@ -140,38 +166,10 @@ mod tests {
 
     #[test]
     pub fn new_project() {
-        let bfc = random_bfc();
-        let bfc2 = random_bfc();
+        let bfc = external_input_bfc();
+        let bfc2 = external_output_bfc();
 
         Project::new(vec![bfc, bfc2]);
-    }
-
-    #[test]
-    pub fn add_bfc_to_project() {
-        let bfc = random_bfc();
-
-        let mut project = Project::default();
-
-        project.add_bfc(bfc.clone());
-    }
-
-    #[test]
-    fn bfc_exists_in_project() {
-        let bfc = random_bfc();
-
-        let project = Project::new(vec![bfc.clone()]);
-
-        assert!(project.has_bfc(&bfc));
-    }
-
-    #[test]
-    fn bfc_not_exists_in_project() {
-        let bfc = random_bfc();
-        let bfc2 = random_bfc2();
-
-        let project = Project::new(vec![bfc.clone()]);
-
-        assert!(!project.has_bfc(&bfc2));
     }
 
     #[test]
@@ -194,122 +192,86 @@ mod tests {
         proj.set_adjustment_factors(af);
 
         let mut bfc1 = BasicFunctionalComponent::new(
-            "Base de dados de produtos".to_string(),
+            "Base de dados de produtos",
             FunctionalClassification::InternalLogicalFile,
         );
 
-        bfc1.set_red(ElementaryDataReferenced {
-            input: 4,
-            output: 0,
-        });
+        bfc1.set_red(ElementaryDataReferenced::new(4, 0));
 
-        bfc1.set_file_registry(FileRegistry {
-            input: 1,
-            output: 0,
-        });
+        bfc1.set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc2 = BasicFunctionalComponent::new(
-            "Função de Criação de Registros".to_string(),
+            "Função de Criação de Registros",
             FunctionalClassification::ExternalInput,
         );
 
-        bfc2.set_red(ElementaryDataReferenced {
-            input: 4,
-            output: 0,
-        });
+        bfc2.set_red(ElementaryDataReferenced::new(4, 0));
 
-        bfc2.set_file_registry(FileRegistry {
-            input: 1,
-            output: 0,
-        });
+        bfc2.set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc3 = BasicFunctionalComponent::new(
-            "Função de Consulta de Registros".to_string(),
+            "Função de Consulta de Registros",
             FunctionalClassification::ExternalQuery,
         );
 
-        bfc3.set_red(ElementaryDataReferenced {
-            input: 4,
-            output: 0,
-        });
+        bfc3.set_red(ElementaryDataReferenced::new(4, 0));
 
-        bfc3.set_file_registry(FileRegistry {
-            input: 1,
-            output: 0,
-        });
+        bfc3.set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc4 = BasicFunctionalComponent::new(
-            "Função de Atualização de dados".to_string(),
+            "Função de Atualização de dados",
             FunctionalClassification::ExternalInput,
         );
 
-        bfc4.set_red(ElementaryDataReferenced {
-            input: 3,
-            output: 0,
-        });
+        bfc4.set_red(ElementaryDataReferenced::new(3, 0));
 
-        bfc4.set_file_registry(FileRegistry {
-            input: 1,
-            output: 0,
-        });
+        bfc4.set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc5 = BasicFunctionalComponent::new(
-            "Função de Extração de dados".to_string(),
+            "Função de Extração de dados",
             FunctionalClassification::ExternalOutput,
         );
 
-        bfc5.set_red(ElementaryDataReferenced {
-            input: 4,
-            output: 6,
-        });
+        bfc5.set_red(ElementaryDataReferenced::new(4, 6));
 
-        bfc5.set_file_registry(FileRegistry {
-            input: 1,
-            output: 1,
-        });
+        bfc5.set_file_registry(FileRegistry::new(1, 1));
 
         let mut bfc6 = BasicFunctionalComponent::new(
-            "Arquivo de dados extraídos".to_string(),
+            "Arquivo de dados extraídos",
             FunctionalClassification::ExternalInterfaceFile,
         );
 
-        bfc6.set_red(ElementaryDataReferenced {
-            input: 0,
-            output: 6,
-        });
+        bfc6.set_red(ElementaryDataReferenced::new(0, 6));
 
-        bfc6.set_file_registry(FileRegistry {
-            input: 1,
-            output: 0,
-        });
+        bfc6.set_file_registry(FileRegistry::new(1, 0));
 
-        proj.add_bfc(bfc1);
-        proj.add_bfc(bfc2);
-        proj.add_bfc(bfc3);
-        proj.add_bfc(bfc4);
-        proj.add_bfc(bfc5);
-        proj.add_bfc(bfc6);
+        proj.add_bfc(bfc1)
+            .add_bfc(bfc2)
+            .add_bfc(bfc3)
+            .add_bfc(bfc4)
+            .add_bfc(bfc5)
+            .add_bfc(bfc6);
 
-        assert_eq!(proj.total_function_point_not_adjusted, 28);
-        assert_eq!(proj.total_influence_factor, 32);
-        assert_eq!(format!("{:.2}", proj.final_adjustment_factor), "0.97");
+        assert_eq!(proj.total_function_point_not_adjusted(), 28);
+        assert_eq!(proj.total_influence_factor(), 32);
+        assert_eq!(format!("{:.2}", proj.final_adjustment_factor()), "0.97");
         assert_eq!(
-            format!("{:.2}", proj.final_adjusted_function_points),
+            format!("{:.2}", proj.final_adjusted_function_points()),
             "27.16"
         );
-        assert_eq!(proj.total_cost, 2716f32);
+        assert_eq!(proj.total_cost(), 2716f32);
     }
 
-    fn random_bfc() -> BasicFunctionalComponent {
+    fn external_input_bfc() -> BasicFunctionalComponent {
         BasicFunctionalComponent::new(
-            "Create tables".to_string(),
+            "Create tables",
             FunctionalClassification::ExternalInput,
         )
     }
 
-    fn random_bfc2() -> BasicFunctionalComponent {
+    fn external_output_bfc() -> BasicFunctionalComponent {
         BasicFunctionalComponent::new(
-            "Lorem ipsum".to_string(),
+            "Lorem ipsum",
             FunctionalClassification::ExternalOutput,
         )
     }
