@@ -1,5 +1,5 @@
 [package]
-name = "apf-rs"
+name = "fpa-rs"
 version = "0.1.0"
 authors = ["vsimoes"]
 edition = "2018"

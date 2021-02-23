@@ -1,14 +1,26 @@
 #[derive(Clone, PartialEq, Debug, Default)]
 pub struct ElementaryDataReferenced {
-    pub input: u32,
-    pub output: u32,
+    input: u32,
+    output: u32,
 }
 
 impl ElementaryDataReferenced {
-    pub fn new(input: u32, output: u32) -> Self { Self { input, output } }
+    pub fn new(input: u32, output: u32) -> Self {
+        Self { input, output }
+    }
 
     pub fn total(&self) -> u32 {
         self.input + self.output
+    }
+
+    /// Get a reference to the elementary data referenced's input.
+    pub fn input(&self) -> &u32 {
+        &self.input
+    }
+
+    /// Get a reference to the elementary data referenced's output.
+    pub fn output(&self) -> &u32 {
+        &self.output
     }
 }
 

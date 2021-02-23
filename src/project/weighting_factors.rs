@@ -67,8 +67,9 @@ mod tests {
         let eo = [10, 11, 12];
         let ei = [13, 14, 15];
 
-        let mut wf = WeightingFactors::new()
-            .set_referenced_logical_file(rlf)
+        let mut wf = WeightingFactors::new();
+
+        wf.set_referenced_logical_file(rlf)
             .set_external_query(eq)
             .set_external_output(eo)
             .set_external_input(ei);

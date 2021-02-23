@@ -26,9 +26,9 @@ impl Project {
     pub fn new(bfcs: Vec<BasicFunctionalComponent>) -> Self {
         let mut project = Project::default();
 
-	for bfc in bfcs.into_iter() {
-	    project.add_bfc(bfc);
-	}
+        for bfc in bfcs.into_iter() {
+            project.add_bfc(bfc);
+        }
 
         project
     }
@@ -70,13 +70,13 @@ impl Project {
     }
 
     fn increment_summary_table(&mut self, bfc: &BasicFunctionalComponent) {
-        let level = match bfc.complexity {
+        let level = match bfc.complexity() {
             Complexity::Simple => 0,
             Complexity::Middle => 1,
             Complexity::Complex => 2,
         };
 
-        match bfc.functional_classification {
+        match bfc.functional_classification() {
             FunctionalClassification::ExternalInput => self.summary.external_input[level] += 1,
             FunctionalClassification::ExternalOutput => self.summary.external_output[level] += 1,
             FunctionalClassification::ExternalInterfaceFile => {
@@ -165,25 +165,17 @@ mod tests {
     use crate::project::basic_functional_component::FileRegistry;
 
     #[test]
-    pub fn new_project() {
-        let bfc = external_input_bfc();
-        let bfc2 = external_output_bfc();
-
-        Project::new(vec![bfc, bfc2]);
-    }
-
-    #[test]
-    fn project_calc() {
+    fn should_calculate_correctly() {
         let mut proj = Project::default();
 
         proj.set_cost_per_hour(100f32);
 
-        let wf = WeightingFactors {
-            referenced_logical_file: [7, 10, 15],
-            external_query: [4, 5, 7],
-            external_input: [3, 4, 6],
-            external_output: [4, 5, 7],
-        };
+        let mut wf = WeightingFactors::new();
+
+        wf.set_referenced_logical_file([7, 10, 15])
+            .set_external_query([4, 5, 7])
+            .set_external_output([3, 4, 6])
+            .set_external_input([4, 5, 7]);
 
         proj.set_weighting_factors(wf);
 
@@ -260,19 +252,5 @@ mod tests {
             "27.16"
         );
         assert_eq!(proj.total_cost(), 2716f32);
-    }
-
-    fn external_input_bfc() -> BasicFunctionalComponent {
-        BasicFunctionalComponent::new(
-            "Create tables",
-            FunctionalClassification::ExternalInput,
-        )
-    }
-
-    fn external_output_bfc() -> BasicFunctionalComponent {
-        BasicFunctionalComponent::new(
-            "Lorem ipsum",
-            FunctionalClassification::ExternalOutput,
-        )
     }
 }
