@@ -14,7 +14,7 @@ pub struct Project {
     summary: Summary,
     adjustment_factors: AdjustmentFactors,
     weighting_factors: WeightingFactors,
-    total_function_point_not_adjusted: u32,
+    total_function_point_not_adjusted: f32,
     total_influence_factor: u32,
     final_adjustment_factor: f32,
     final_adjusted_function_points: f32,
@@ -23,6 +23,7 @@ pub struct Project {
 }
 
 impl Project {
+    /// Create a new Project.
     pub fn new(bfcs: Vec<BasicFunctionalComponent>) -> Self {
         let mut project = Project::default();
 
@@ -33,6 +34,7 @@ impl Project {
         project
     }
 
+    /// Add Basic Functional Component to Project.
     pub fn add_bfc(&mut self, bfc: BasicFunctionalComponent) -> &mut Self {
         self.increment_summary_table(&bfc);
         self.basic_functional_components.push(bfc);
@@ -41,11 +43,13 @@ impl Project {
         self
     }
 
+    /// Set the Weighting Factors.
     pub fn set_weighting_factors(&mut self, wf: WeightingFactors) {
         self.weighting_factors = wf;
         self.compute_fafp();
     }
 
+    /// Set Adjustment Factors.
     pub fn set_adjustment_factors(&mut self, af: AdjustmentFactors) {
         self.adjustment_factors = af;
         self.total_influence_factor = self.adjustment_factors.sum();
@@ -53,6 +57,7 @@ impl Project {
         self.compute_fafp();
     }
 
+    /// Set Cost per Hour.
     pub fn set_cost_per_hour(&mut self, cph: f32) {
         self.cost_per_hour = cph;
         self.compute_cost();
@@ -60,7 +65,7 @@ impl Project {
 
     fn compute_fafp(&mut self) {
         self.final_adjusted_function_points =
-            self.total_function_point_not_adjusted as f32 * self.final_adjustment_factor;
+            self.total_function_point_not_adjusted * self.final_adjustment_factor;
 
         self.compute_cost();
     }
@@ -118,7 +123,7 @@ impl Project {
         );
 
         self.total_function_point_not_adjusted =
-            ilf_result + eif_result + ei_result + eo_result + eq_result;
+            (ilf_result + eif_result + ei_result + eo_result + eq_result) as f32;
 
         self.compute_fafp();
     }
@@ -133,7 +138,7 @@ impl Project {
     }
 
     /// Get a reference to the project's total function point not adjusted.
-    pub fn total_function_point_not_adjusted(&self) -> u32 {
+    pub fn total_function_point_not_adjusted(&self) -> f32 {
         self.total_function_point_not_adjusted
     }
 
@@ -174,8 +179,8 @@ mod tests {
 
         wf.set_referenced_logical_file([7, 10, 15])
             .set_external_query([4, 5, 7])
-            .set_external_output([3, 4, 6])
-            .set_external_input([4, 5, 7]);
+            .set_external_input([3, 4, 6])
+            .set_external_output([4, 5, 7]);
 
         proj.set_weighting_factors(wf);
 
@@ -188,7 +193,7 @@ mod tests {
             FunctionalClassification::InternalLogicalFile,
         );
 
-        bfc1.set_red(ElementaryDataReferenced::new(4, 0));
+        bfc1.set_edr(ElementaryDataReferenced::new(4, 0));
 
         bfc1.set_file_registry(FileRegistry::new(1, 0));
 
@@ -197,7 +202,7 @@ mod tests {
             FunctionalClassification::ExternalInput,
         );
 
-        bfc2.set_red(ElementaryDataReferenced::new(4, 0));
+        bfc2.set_edr(ElementaryDataReferenced::new(4, 0));
 
         bfc2.set_file_registry(FileRegistry::new(1, 0));
 
@@ -206,7 +211,7 @@ mod tests {
             FunctionalClassification::ExternalQuery,
         );
 
-        bfc3.set_red(ElementaryDataReferenced::new(4, 0));
+        bfc3.set_edr(ElementaryDataReferenced::new(4, 0));
 
         bfc3.set_file_registry(FileRegistry::new(1, 0));
 
@@ -215,7 +220,7 @@ mod tests {
             FunctionalClassification::ExternalInput,
         );
 
-        bfc4.set_red(ElementaryDataReferenced::new(3, 0));
+        bfc4.set_edr(ElementaryDataReferenced::new(3, 0));
 
         bfc4.set_file_registry(FileRegistry::new(1, 0));
 
@@ -224,7 +229,7 @@ mod tests {
             FunctionalClassification::ExternalOutput,
         );
 
-        bfc5.set_red(ElementaryDataReferenced::new(4, 6));
+        bfc5.set_edr(ElementaryDataReferenced::new(4, 6));
 
         bfc5.set_file_registry(FileRegistry::new(1, 1));
 
@@ -233,7 +238,7 @@ mod tests {
             FunctionalClassification::ExternalInterfaceFile,
         );
 
-        bfc6.set_red(ElementaryDataReferenced::new(0, 6));
+        bfc6.set_edr(ElementaryDataReferenced::new(0, 6));
 
         bfc6.set_file_registry(FileRegistry::new(1, 0));
 
@@ -244,13 +249,13 @@ mod tests {
             .add_bfc(bfc5)
             .add_bfc(bfc6);
 
-        assert_eq!(proj.total_function_point_not_adjusted(), 28);
-        assert_eq!(proj.total_influence_factor(), 32);
-        assert_eq!(format!("{:.2}", proj.final_adjustment_factor()), "0.97");
+        assert_eq!(28.00, proj.total_function_point_not_adjusted());
+        assert_eq!(32, proj.total_influence_factor());
+        assert_eq!("0.97", format!("{:.2}", proj.final_adjustment_factor()));
         assert_eq!(
-            format!("{:.2}", proj.final_adjusted_function_points()),
-            "27.16"
+            "27.16",
+            format!("{:.2}", proj.final_adjusted_function_points())
         );
-        assert_eq!(proj.total_cost(), 2716f32);
+        assert_eq!(2716f32, proj.total_cost());
     }
 }
