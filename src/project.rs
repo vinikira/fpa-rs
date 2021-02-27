@@ -24,14 +24,8 @@ pub struct Project {
 
 impl Project {
     /// Create a new Project.
-    pub fn new(bfcs: Vec<BasicFunctionalComponent>) -> Self {
-        let mut project = Project::default();
-
-        for bfc in bfcs.into_iter() {
-            project.add_bfc(bfc);
-        }
-
-        project
+    pub fn new() -> Self {
+        Project::default()
     }
 
     /// Add Basic Functional Component to Project.
@@ -44,23 +38,54 @@ impl Project {
     }
 
     /// Set the Weighting Factors.
-    pub fn set_weighting_factors(&mut self, wf: WeightingFactors) {
+    pub fn set_weighting_factors(&mut self, wf: WeightingFactors) -> &mut Self {
         self.weighting_factors = wf;
         self.compute_fafp();
+
+        self
     }
 
     /// Set Adjustment Factors.
-    pub fn set_adjustment_factors(&mut self, af: AdjustmentFactors) {
+    pub fn set_adjustment_factors(&mut self, af: AdjustmentFactors) -> &mut Self {
         self.adjustment_factors = af;
         self.total_influence_factor = self.adjustment_factors.sum();
         self.final_adjustment_factor = 0.65f32 + (0.01f32 * self.total_influence_factor as f32);
         self.compute_fafp();
+
+        self
     }
 
     /// Set Cost per Hour.
-    pub fn set_cost_per_hour(&mut self, cph: f32) {
+    pub fn set_cost_per_hour(&mut self, cph: f32) -> &mut Self {
         self.cost_per_hour = cph;
         self.compute_cost();
+
+        self
+    }
+
+    /// Get a reference to the project's total function point not adjusted.
+    pub fn total_function_point_not_adjusted(&self) -> f32 {
+        self.total_function_point_not_adjusted
+    }
+
+    /// Get a reference to the project's total influence factor.
+    pub fn total_influence_factor(&self) -> u32 {
+        self.total_influence_factor
+    }
+
+    /// Get a reference to the project's final adjustment factor.
+    pub fn final_adjustment_factor(&self) -> f32 {
+        self.final_adjustment_factor
+    }
+
+    /// Get a reference to the project's final adjusted function points.
+    pub fn final_adjusted_function_points(&self) -> f32 {
+        self.final_adjusted_function_points
+    }
+
+    /// Get a reference to the project's total cost.
+    pub fn total_cost(&self) -> f32 {
+        self.total_cost
     }
 
     fn compute_fafp(&mut self) {
@@ -136,31 +161,6 @@ impl Project {
             .map(|(summary_weight, weighting_factor)| summary_weight * weighting_factor)
             .sum()
     }
-
-    /// Get a reference to the project's total function point not adjusted.
-    pub fn total_function_point_not_adjusted(&self) -> f32 {
-        self.total_function_point_not_adjusted
-    }
-
-    /// Get a reference to the project's total influence factor.
-    pub fn total_influence_factor(&self) -> u32 {
-        self.total_influence_factor
-    }
-
-    /// Get a reference to the project's final adjustment factor.
-    pub fn final_adjustment_factor(&self) -> f32 {
-        self.final_adjustment_factor
-    }
-
-    /// Get a reference to the project's final adjusted function points.
-    pub fn final_adjusted_function_points(&self) -> f32 {
-        self.final_adjusted_function_points
-    }
-
-    /// Get a reference to the project's total cost.
-    pub fn total_cost(&self) -> f32 {
-        self.total_cost
-    }
 }
 
 #[cfg(test)]
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn should_calculate_correctly() {
-        let mut proj = Project::default();
+        let mut proj = Project::new();
 
         proj.set_cost_per_hour(100f32);
 
@@ -193,54 +193,48 @@ mod tests {
             FunctionalClassification::InternalLogicalFile,
         );
 
-        bfc1.set_edr(ElementaryDataReferenced::new(4, 0));
-
-        bfc1.set_file_registry(FileRegistry::new(1, 0));
+        bfc1.set_edr(ElementaryDataReferenced::new(4, 0))
+            .set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc2 = BasicFunctionalComponent::new(
             "Função de Criação de Registros",
             FunctionalClassification::ExternalInput,
         );
 
-        bfc2.set_edr(ElementaryDataReferenced::new(4, 0));
-
-        bfc2.set_file_registry(FileRegistry::new(1, 0));
+        bfc2.set_edr(ElementaryDataReferenced::new(4, 0))
+            .set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc3 = BasicFunctionalComponent::new(
             "Função de Consulta de Registros",
             FunctionalClassification::ExternalQuery,
         );
 
-        bfc3.set_edr(ElementaryDataReferenced::new(4, 0));
-
-        bfc3.set_file_registry(FileRegistry::new(1, 0));
+        bfc3.set_edr(ElementaryDataReferenced::new(4, 0))
+            .set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc4 = BasicFunctionalComponent::new(
             "Função de Atualização de dados",
             FunctionalClassification::ExternalInput,
         );
 
-        bfc4.set_edr(ElementaryDataReferenced::new(3, 0));
-
-        bfc4.set_file_registry(FileRegistry::new(1, 0));
+        bfc4.set_edr(ElementaryDataReferenced::new(3, 0))
+            .set_file_registry(FileRegistry::new(1, 0));
 
         let mut bfc5 = BasicFunctionalComponent::new(
             "Função de Extração de dados",
             FunctionalClassification::ExternalOutput,
         );
 
-        bfc5.set_edr(ElementaryDataReferenced::new(4, 6));
-
-        bfc5.set_file_registry(FileRegistry::new(1, 1));
+        bfc5.set_edr(ElementaryDataReferenced::new(4, 6))
+            .set_file_registry(FileRegistry::new(1, 1));
 
         let mut bfc6 = BasicFunctionalComponent::new(
             "Arquivo de dados extraídos",
             FunctionalClassification::ExternalInterfaceFile,
         );
 
-        bfc6.set_edr(ElementaryDataReferenced::new(0, 6));
-
-        bfc6.set_file_registry(FileRegistry::new(1, 0));
+        bfc6.set_edr(ElementaryDataReferenced::new(0, 6))
+            .set_file_registry(FileRegistry::new(1, 0));
 
         proj.add_bfc(bfc1)
             .add_bfc(bfc2)
